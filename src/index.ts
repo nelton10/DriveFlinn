@@ -6,6 +6,7 @@ import { runSync } from "./sync";
 import { cleanMediaTitle, cleanEpisodeTitle, searchTmdb, getTmdbDetails, getTvSeasonEpisodes, searchTmdbRemote, getTmdbImages } from "./tmdb";
 import { createDatabaseBackup, listDatabaseBackups, restoreDatabaseBackup } from "./backup";
 import { withPersistedVars } from "./config";
+import { registerIptvRoutes } from "./iptv";
 import {
   extractAuth,
   extractBasic,
@@ -326,7 +327,7 @@ export function classifyRoute(method: string, rawPath: string): Access {
   // Legendas (o player as carrega por <track> sem cabeçalho).
   if (read && /^\/videos\/[^/]+\/[^/]+\/subtitles\/\d+\/(\d+\/)?stream\.[a-z0-9]+$/.test(p)) return "anon";
 
-  if (p === "/setup" || p.startsWith("/setup/") || p === "/sync" || p === "/fix-uuid") return "html-admin";
+  if (p === "/iptv" || p.startsWith("/iptv/") || p === "/setup" || p.startsWith("/setup/") || p === "/sync" || p === "/fix-uuid") return "html-admin";
 
   if (/^\/(backup|environment|scheduledtasks|system\/logs|system\/activitylog|library\/refresh|items\/root\/refresh|items\/remotesearch|users\/new)(\/|$)/.test(p)) return "admin";
   if (!read && /^\/(system\/configuration|branding\/configuration|library\/virtualfolders|devices)(\/|$)/.test(p)) return "admin";
@@ -5187,6 +5188,9 @@ app.post("/Items/:itemId/Images/:imageType/Delete", handleImageDelete);
 app.post("/Items/:itemId/Images/:imageType/:index/Delete", handleImageDelete);
 
 
+
+// IPTV routes share the existing authentication and D1 database.
+registerIptvRoutes(app);
 
 // "/Users/Me/..." é o usuário da sessão (como no Jellyfin). Reescrevemos para o Id real
 // antes do roteamento, para nenhum handler interpretar "me" como o admin.
